@@ -1,0 +1,297 @@
+# PIPELINE DEFINITION
+# Name: skipgram-training-pipeline
+# Description: Pipeline to check GCS flag and submit PyTorchJobs
+# Inputs:
+#    bucket_name: str [Default: 'kltn--data']
+#    yaml_ranker_gcs_path: str [Default: 'config/rankingptjob.yaml']
+#    yaml_skipgram_gcs_path: str [Default: 'config/skipgramptjob.yaml']
+components:
+  comp-check-flag-today:
+    executorLabel: exec-check-flag-today
+    inputDefinitions:
+      parameters:
+        bucket_name:
+          parameterType: STRING
+    outputDefinitions:
+      parameters:
+        Output:
+          parameterType: BOOLEAN
+  comp-condition-1:
+    dag:
+      tasks:
+        prep-feature:
+          cachingOptions: {}
+          componentRef:
+            name: comp-prep-feature
+          dependentTasks:
+          - submit-pytorch-job-skipgram
+          taskInfo:
+            name: prep-feature
+        submit-pytorch-job-ranking:
+          cachingOptions: {}
+          componentRef:
+            name: comp-submit-pytorch-job-ranking
+          dependentTasks:
+          - prep-feature
+          inputs:
+            parameters:
+              bucket_name:
+                componentInputParameter: pipelinechannel--bucket_name
+              yaml_ranker_gcs_path:
+                componentInputParameter: pipelinechannel--yaml_ranker_gcs_path
+          taskInfo:
+            name: submit-pytorch-job-ranking
+        submit-pytorch-job-skipgram:
+          cachingOptions: {}
+          componentRef:
+            name: comp-submit-pytorch-job-skipgram
+          inputs:
+            parameters:
+              bucket_name:
+                componentInputParameter: pipelinechannel--bucket_name
+              yaml_skipgram_gcs_path:
+                componentInputParameter: pipelinechannel--yaml_skipgram_gcs_path
+          taskInfo:
+            name: submit-pytorch-job-skipgram
+    inputDefinitions:
+      parameters:
+        pipelinechannel--bucket_name:
+          parameterType: STRING
+        pipelinechannel--check-flag-today-Output:
+          parameterType: BOOLEAN
+        pipelinechannel--yaml_ranker_gcs_path:
+          parameterType: STRING
+        pipelinechannel--yaml_skipgram_gcs_path:
+          parameterType: STRING
+  comp-prep-feature:
+    executorLabel: exec-prep-feature
+  comp-submit-pytorch-job-ranking:
+    executorLabel: exec-submit-pytorch-job-ranking
+    inputDefinitions:
+      parameters:
+        bucket_name:
+          parameterType: STRING
+        yaml_ranker_gcs_path:
+          parameterType: STRING
+  comp-submit-pytorch-job-skipgram:
+    executorLabel: exec-submit-pytorch-job-skipgram
+    inputDefinitions:
+      parameters:
+        bucket_name:
+          parameterType: STRING
+        yaml_skipgram_gcs_path:
+          parameterType: STRING
+deploymentSpec:
+  executors:
+    exec-check-flag-today:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - check_flag_today
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'google-cloud-storage'\
+          \  &&  python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.1'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef check_flag_today(bucket_name: str) -> bool:\n    from google.cloud\
+          \ import storage\n    from datetime import datetime\n\n    client = storage.Client()\n\
+          \    bucket = client.bucket(bucket_name)\n\n    today_str = datetime.utcnow().strftime(\"\
+          %Y_%m_%d\")\n    prefix = \"_flags/training_ready_\"\n\n    blobs = bucket.list_blobs(prefix=prefix)\n\
+          \    return any(today_str in blob.name for blob in blobs)\n\n"
+        image: python:3.11
+    exec-prep-feature:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - prep_feature
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.1'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef prep_feature():\n    import subprocess\n    result = subprocess.run(\n\
+          \        ['python', '-m', 'src.pre_feature'],\n        capture_output=True,\n\
+          \        text=True,\n        check=False  \n    )\n\n    print(f\"Return\
+          \ code: {result.returncode}\")\n    print(f\"STDOUT: {result.stdout}\")\n\
+          \    print(f\"STDERR: {result.stderr}\")\n\n    if result.returncode !=\
+          \ 0:\n        raise Exception(f\"ERROR: {result.stderr}\")\n\n"
+        image: quangtran1011/training_pipeline:v16
+    exec-submit-pytorch-job-ranking:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - submit_pytorch_job_ranking
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'google-cloud-storage'\
+          \  &&  python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.1'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef submit_pytorch_job_ranking(bucket_name: str, yaml_ranker_gcs_path:\
+          \ str):\n    \"\"\"\n    Download YAML t\u1EEB GCS v\xE0 apply v\xE0o k8s\
+          \ cluster\n    \"\"\"\n    import subprocess\n    from google.cloud import\
+          \ storage\n    subprocess.run([\"apt-get\", \"update\"])\n    subprocess.run([\"\
+          apt-get\", \"install\", \"-y\", \"kubectl\"])\n    # Download YAML from\
+          \ GCS\n    client = storage.Client()\n    bucket = client.bucket(bucket_name)\n\
+          \    blob = bucket.blob(yaml_ranker_gcs_path)\n\n    local_yaml = \"/tmp/pytorchjob.yaml\"\
+          \n    blob.download_to_filename(local_yaml)\n\n    print(f\"\u2705 Downloaded\
+          \ YAML from gs://{bucket_name}/{yaml_ranker_gcs_path}\")\n\n    # Read and\
+          \ print YAML content for debugging\n    with open(local_yaml, 'r') as f:\n\
+          \        print(\"YAML content:\")\n        print(f.read())\n\n    # Apply\
+          \ to k8s\n    result = subprocess.run(\n        ['kubectl', 'apply', '-f',\
+          \ '/tmp/pytorchjob.yaml', '-n', 'kubeflow'],\n        capture_output=True,\n\
+          \        text=True,\n        check=False  \n    )\n\n    print(f\"Return\
+          \ code: {result.returncode}\")\n    print(f\"STDOUT: {result.stdout}\")\n\
+          \    print(f\"STDERR: {result.stderr}\")\n\n    if result.returncode !=\
+          \ 0:\n        raise Exception(f\"kubectl apply failed: {result.stderr}\"\
+          )\n\n"
+        image: python:3.11
+    exec-submit-pytorch-job-skipgram:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - submit_pytorch_job_skipgram
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'google-cloud-storage'\
+          \  &&  python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.1'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef submit_pytorch_job_skipgram(bucket_name: str, yaml_skipgram_gcs_path:\
+          \ str):\n    \"\"\"\n    Download YAML t\u1EEB GCS v\xE0 apply v\xE0o k8s\
+          \ cluster\n    \"\"\"\n    import subprocess\n    from google.cloud import\
+          \ storage\n    subprocess.run([\"apt-get\", \"update\"])\n    subprocess.run([\"\
+          apt-get\", \"install\", \"-y\", \"kubectl\"])\n    # Download YAML from\
+          \ GCS\n    client = storage.Client()\n    bucket = client.bucket(bucket_name)\n\
+          \    blob = bucket.blob(yaml_skipgram_gcs_path)\n\n    local_yaml = \"/tmp/pytorchjob.yaml\"\
+          \n    blob.download_to_filename(local_yaml)\n\n    print(f\"\u2705 Downloaded\
+          \ YAML from gs://{bucket_name}/{yaml_skipgram_gcs_path}\")\n\n    # Read\
+          \ and print YAML content for debugging\n    with open(local_yaml, 'r') as\
+          \ f:\n        print(\"YAML content:\")\n        print(f.read())\n\n    #\
+          \ Apply to k8s\n    result = subprocess.run(\n        ['kubectl', 'apply',\
+          \ '-f', '/tmp/pytorchjob.yaml', '-n', 'kubeflow'],\n        capture_output=True,\n\
+          \        text=True,\n        check=False  \n    )\n\n    print(f\"Return\
+          \ code: {result.returncode}\")\n    print(f\"STDOUT: {result.stdout}\")\n\
+          \    print(f\"STDERR: {result.stderr}\")\n\n    if result.returncode !=\
+          \ 0:\n        raise Exception(f\"kubectl apply failed: {result.stderr}\"\
+          )\n\n"
+        image: python:3.11
+pipelineInfo:
+  description: Pipeline to check GCS flag and submit PyTorchJobs
+  name: skipgram-training-pipeline
+root:
+  dag:
+    tasks:
+      check-flag-today:
+        cachingOptions: {}
+        componentRef:
+          name: comp-check-flag-today
+        inputs:
+          parameters:
+            bucket_name:
+              componentInputParameter: bucket_name
+        taskInfo:
+          name: check-flag-today
+      condition-1:
+        componentRef:
+          name: comp-condition-1
+        dependentTasks:
+        - check-flag-today
+        inputs:
+          parameters:
+            pipelinechannel--bucket_name:
+              componentInputParameter: bucket_name
+            pipelinechannel--check-flag-today-Output:
+              taskOutputParameter:
+                outputParameterKey: Output
+                producerTask: check-flag-today
+            pipelinechannel--yaml_ranker_gcs_path:
+              componentInputParameter: yaml_ranker_gcs_path
+            pipelinechannel--yaml_skipgram_gcs_path:
+              componentInputParameter: yaml_skipgram_gcs_path
+        taskInfo:
+          name: if-flag-exists
+        triggerPolicy:
+          condition: inputs.parameter_values['pipelinechannel--check-flag-today-Output']
+            == true
+  inputDefinitions:
+    parameters:
+      bucket_name:
+        defaultValue: kltn--data
+        isOptional: true
+        parameterType: STRING
+      yaml_ranker_gcs_path:
+        defaultValue: config/rankingptjob.yaml
+        isOptional: true
+        parameterType: STRING
+      yaml_skipgram_gcs_path:
+        defaultValue: config/skipgramptjob.yaml
+        isOptional: true
+        parameterType: STRING
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.15.1

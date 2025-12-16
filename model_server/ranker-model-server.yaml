@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ranker-model-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ranker-model-server
+  template:
+    metadata:
+      labels:
+        app: ranker-model-server
+    spec:
+      containers:
+        - name: ranker-model-server
+          image: quangtran1011/ranker_model_server:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MLFLOW_TRACKING_URI
+              value: "http://34.69.242.168:8080"
+            - name: QDRANT_HOST
+              value: "http://qdrant"
+            - name: QDRANT_PORT
+              value: "6333"
+          command: ["bentoml", "serve", "service:RankerService", "--port", "3000"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ranker-model-server
+spec:
+  selector:
+    app: ranker-model-server
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP

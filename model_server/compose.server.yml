@@ -1,0 +1,19 @@
+services:
+  ranker_model_server:
+    container_name: ranker_model_server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://34.69.242.168:8080
+      - QDRANT_HOST=http://kltn2-qdrant-1
+      - QDRANT_PORT=6333
+    entrypoint: ["bentoml", "serve", "service:RankerService"]
+    networks:
+      - kltn
+
+networks:
+  kltn:
+    external: true

@@ -1,0 +1,35 @@
+[project]
+name = "kltn"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "bentoml>=1.4.19",
+    "datasets[s3]==2.21.0",
+    "dbt-bigquery>=1.10.2",
+    "dbt-spark>=1.9.3",
+    "dotenv>=0.9.9",
+    "evidently==0.6.5",
+    "fastapi[standard]>=0.117.1",
+    "feast[redis]==0.50.0",
+    "findspark>=2.0.1",
+    "gcsfs>=2024.6.1",
+    "google-cloud-bigquery>=3.38.0",
+    "gradio>=5.50.0",
+    "ipykernel>=6.30.1",
+    "kfp>=2.15.1",
+    "kfp-kubernetes>=2.15.1",
+    "lightning>=2.5.5",
+    "loguru>=0.7.3",
+    "minio>=7.2.16",
+    "mlflow[extras]>=3.4.0",
+    "openai>=2.7.1",
+    "polars>=1.34.0",
+    "py4j>=0.10.9.9",
+    "pyarrow==17.0.0",
+    "pydantic==2.10.6",
+    "pyspark>=4.0.0",
+    "qdrant-client>=1.12.1",
+    "torch>=2.8.0",
+]

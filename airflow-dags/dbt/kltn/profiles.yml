@@ -1,0 +1,11 @@
+kltn:
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: big-potential-478810-t1
+      dataset: kltn
+      keyfile: /var/secrets/google/gcp-key.json
+      threads: 4
+      timeout_seconds: 300
+  target: dev

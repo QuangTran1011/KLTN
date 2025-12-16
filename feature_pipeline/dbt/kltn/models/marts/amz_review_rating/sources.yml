@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: amz_review_rating
+    database: big-potential-478810-t1
+    schema: kltn
+    tables:
+      - name: traindatareview

@@ -1,0 +1,11 @@
+kltn:
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: big-potential-478810-t1
+      dataset: kltn
+      keyfile: /home/quangtran/Documents/KLTN2/secrect/big-potential-478810-t1-45a8acfc699b.json
+      threads: 4
+      timeout_seconds: 300
+  target: dev

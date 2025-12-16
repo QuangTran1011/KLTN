@@ -1,0 +1,13 @@
+project: kltn
+provider: local
+registry:
+    type: file
+    path: gs://feast-data/registry.db
+online_store:
+    type: redis
+    connection_string: "10.7.17.3:6379"
+offline_store:
+  type: bigquery
+  project_id: big-potential-478810-t1
+  dataset: kltn
+entity_key_serialization_version: 2

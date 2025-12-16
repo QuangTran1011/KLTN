@@ -1,0 +1,10 @@
+scikit-learn==1.7.2
+torch==2.8.0
+mlflow==3.4.0
+bentoml==1.4.19
+pandas==2.3.2
+numpy==2.0.2
+loguru==0.7.3
+dill==0.3.8
+tqdm==4.67.1 
+qdrant-client==1.12.1

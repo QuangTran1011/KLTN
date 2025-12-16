@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airflow-dags-pvc   
+  namespace: serving       
+spec:
+  accessModes:
+    - ReadWriteMany        
+  resources:
+    requests:
+      storage: 1Gi          
