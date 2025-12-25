@@ -63,7 +63,7 @@ However, during the first run, the pipeline is expected to fail at the Feature S
 Apply feast:
 - GCP Memorystore (Redis) is only accessible within the internal VPC, so an SSH tunnel is used for access.  
 - SSH into the VM created above using an SSH key.  
-- ssh to redis: `gcloud compute ssh vm-name -- -L 6379:<PRIVATE_IP_OF_REDIS>:6379`.  
+- ssh into redis: `gcloud compute ssh vm-name -- -L 6379:<PRIVATE_IP_OF_REDIS>:6379`.  
 ```bash
 cd $ROOT_DIR && MATERIALIZE_CHECKPOINT_TIME=$(uv run scripts/check_oltp_max_timestamp.py 2>&1 | awk -F'<ts>|</ts>' '{print $2}')
 cd feature pipeline/feature_store/feature_repo
@@ -169,3 +169,79 @@ pipeline-runner is the service account used to run component in pipeline.
 - Create a pipeline using the `training_pipeline.yaml` file.
 - Create a run from the pipeline to start the training workflow.
 
+#### Serving Pipeline
+Deploy Components:
+```bash
+helm install qdrant ./qdrant
+cd feature_pipeline/feature_store
+Build image from docker file and upload to DockerHub
+kubectl apply -f feature-online-server.yaml
+
+cd model_server
+Build image from docker file and upload to DockerHub
+cd istio-*
+export PATH=$PWD/bin:$PATH
+istioctl install --set profile=default -y
+kubectl label namespace serving istio-injection=enabled
+kubectl apply -f ranker-inferenceservice.yaml
+
+cd api
+Build image from docker file and upload to DockerHub
+kubectl create namespace ingress-nginx   
+helm install nginx-ingress ./ingress-nginx \
+  --namespace ingress-nginx \
+  --set controller.publishService.enabled=true
+kubectl apply -f api-deployment.yaml
+kubectl apply -f api-ingress.yaml
+
+cd feature_pipeline/feature_store
+kubectl apply -f feast_ingress.yaml
+```
+
+Precompute:
+cd src/precompute.
+Port-forward Qdrant, SSH tunel Redis and change path in python files.
+```bash
+uv run load_to_vector_store.py
+uv run embedding_tag.py
+uv run batch_precompute.py
+uv run store_user_inter_seq.py
+uv run upload_item_metadata.py
+```
+
+UI:
+```bash
+ssh into VM
+copy folder `ui`
+sudo vim /etc/hosts: insert `<Ingress Controller IP>  kltn.recsys.com` and `<Ingress Controller IP>  feast.kltn.com`
+run file `gradio_ui.py`
+```
+
+#### Continuous Deployment with Jenkins
+Jenkins triggers MLflow to perform a rolling deployment of the latest model.
+
+SSH in to VM and copy folder ContinuousDeployment to VM.
+
+Install Jenkins:
+```bash
+docker pull jenkins/jenkins:lts
+docker run -d \
+  --name jenkins \
+  -p 8000:8080 \
+  -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  jenkins/jenkins:lts
+```
+
+Install `kubectl` in VM  
+Install `gke-gcloud-auth-plugin`  
+Copy file .kube/config to VM
+
+Now, VM can access K8s Cluster.
+
+Setup Jenkins:
+- Open firewall and access Jenkins Web.
+- Create a Node connect to VM to run flow: `Manage Jenkins -> Nodes -> New Node -> Name: host-agent -> Launch method via SSH -> Host: VM IP -> Add credentials: User name with Private Key -> Add private key(should RSA Format) -> None Verification Strategy -> Save`
+- Create Pipeline, Copy Jenkins file.
+
+### 4. Observability
