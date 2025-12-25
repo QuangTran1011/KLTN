@@ -38,11 +38,13 @@ Create a Redis instance (GCP Memorystore) and obtain the connection details.
 
 Create a BigQuery dataset named `kltn` and three table named `traindatareviewtest` within this dataset.
 
-# Airflow Pipeline
+#### Airflow Pipeline
 Install Airflow:
 - `cd airflow-dags` 
 - Update the repo value in dags.gitSync to point to your repository in the Airflow values file.
-- helm install airlow ./airflow
+- `helm install airlow ./airflow`
+- `kubectl apply -f createpod_role.yaml`
+- `kubectl apply -f addrole_svacc.yaml`
 
 Dags:
 - Update the `project_id` value in the dbt profiles.
@@ -59,11 +61,17 @@ You can now run the data pipeline by triggering the DAGs.
 However, during the first run, the pipeline is expected to fail at the Feature Store step because it has not been initialized yet.
 
 Apply feast:
+- GCP Memorystore (Redis) is only accessible within the internal VPC, so an SSH tunnel is used for access.  
+- SSH into the VM created above using an SSH key.  
+- ssh to redis: `gcloud compute ssh vm-name -- -L 6379:<PRIVATE_IP_OF_REDIS>:6379`.  
+```bash
+cd $ROOT_DIR && MATERIALIZE_CHECKPOINT_TIME=$(uv run scripts/check_oltp_max_timestamp.py 2>&1 | awk -F'<ts>|</ts>' '{print $2}')
+cd feature pipeline/feature_store/feature_repo
+change RedisIP to `localhost`
+uv run feast apply
+uv run feast materialize-incremental $MATERIALIZE_CHECKPOINT_TIME -v parent_asin_rating_stats -v parent_asin_rating_stats_fresh -v user_rating_stats -v user_rating_stats_fresh
+```
 
-GCP Memorystore (Redis) is only accessible within the internal VPC, so an SSH tunnel is used for access.
-- SSH into the VM created above using an SSH key.
-- ssh to redis: `gcloud compute ssh vm-name -- -L 6379:<PRIVATE_IP_OF_REDIS>:6379`.
+Finally, re-run the Airflow pipeline.
 
-Apply feast:
-- `cd feature pipeline/feature_store/feature_repo
-- cd $ROOT_DIR && MATERIALIZE_CHECKPOINT_TIME=$(uv run scripts/check_oltp_max_timestamp.py 2>&1 | awk -F'<ts>|</ts>' '{print $2}')
+### 3. Training Pipeline
