@@ -54,7 +54,7 @@ Dags:
 
 Access Airflow:
 - `kubectl port-forward svc/airflow-web 8080:8080` -n serving
-- access `localhost:8080'
+- access `localhost:8080`
 - Go to Admin -> Connection -> Add connection: name is `google_cloud_default`, type Google Cloud, Copy file Service Account Key Json and Paste into 
 
 You can now run the data pipeline by triggering the DAGs.  
@@ -75,3 +75,97 @@ uv run feast materialize-incremental $MATERIALIZE_CHECKPOINT_TIME -v parent_asin
 Finally, re-run the Airflow pipeline.
 
 ### 3. Training Pipeline
+#### Prepare 
+Install Kubeflow:
+```bash
+cd training_pipeline/pipelines
+
+kubectl apply -k manifests/kustomize/cluster-scoped-resources
+kubectl apply -k manifests/kustomize/env/platform-agnostic
+kubectl apply -k "github.com/kubeflow/training-operator/manifests/overlays/standalone?ref=v1.7.0"
+
+kubectl patch deployment seaweedfs -n kubeflow -p '{
+  "spec": {
+    "template": {
+      "spec": {
+        "securityContext": {
+          "fsGroup": 2000,
+          "runAsUser": 1000
+        }
+      }
+    }
+  }
+}'
+
+kubectl rollout status deployment/seaweedfs -n kubeflow
+```
+
+Create a GCP Filestore instance for distributed training, providing a shared filesystem that can be accessed concurrently by multiple pods.  
+- Go to Filestore GCP and create `BASIC_HDD 1TB`.
+- Update nfs path to the Filestore Address and `kubectl apply -f training_pvc.yaml`
+
+#### Workload Identity
+```bash
+gcloud iam service-accounts add-iam-policy-binding \
+    yourserviceaccount@YOUR_PROJECT_ID.iam.gserviceaccount.com \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:YOUR_PROJECT_ID.svc.id.goog[kubeflow/pipeline-runner]"
+
+kubectl annotate serviceaccount pipeline-runner \
+    -n kubeflow \
+    iam.gke.io/gcp-service-account=yourserviceaccount@YOUR_PROJECT_ID.iam.gserviceaccount.com
+
+kubectl apply -f pytorchjob-rbac.yaml`
+```
+pipeline-runner is the service account used to run component in pipeline.
+
+#### MLflow
+
+- Create a Cloud SQL (PostgreSQL) instance as the backend store.
+  - Enable **Private IP**.
+  - Create a database and user for MLflow.
+
+- Create a GCS bucket to be used as the artifact store.
+
+- SSH into the VM and copy the `mlflow` directory to the VM.
+
+- Build the `mlflow-server` Docker image from the MLflow Dockerfile.
+
+- Set the `BACKEND_STORE_URI` and `ARTIFACTS_DESTINATION` environment variables.
+
+- Run the MLflow server:
+  ```bash
+  docker run -d \
+    -p 8080:8080 \
+    -e BACKEND_STORE_URI="$BACKEND_STORE_URI" \
+    -e ARTIFACTS_DESTINATION="$ARTIFACTS_DESTINATION" \
+    -e MLFLOW_SERVER_ALLOWED_HOSTS="*" \
+    --name mlflow \
+    mlflow-server
+
+- Open firewall to access
+
+#### Training Pipeline
+
+- Fine-tune `Qwen3-0.6B` for item tagging using the `finetuning.ipynb` notebook (executed on Kaggle), then compute tag embeddings for use in model training.
+- Update the configuration values in `src/feature_repo` to match your project setup.
+- Build the training Docker image from the provided Dockerfile and push it to Docker Hub.
+- Navigate to the pipeline directory:
+  `cd pipeline`
+
+- Update the following fields in `_ptjob.yaml`:
+  - serviceAccount
+  - image
+  - mlflow_uri
+  Upload the updated `_ptjob.yaml` file to GCS.
+
+- Generate the Kubeflow pipeline definition:
+  `python training_pipeline.py`
+  This command generates the `training_pipeline.yaml` file.
+
+- Access the Kubeflow Pipelines UI:
+  kubectl port-forward svc/ml-pipeline-ui 8080:8080 -n serving
+
+- Create a pipeline using the `training_pipeline.yaml` file.
+- Create a run from the pipeline to start the training workflow.
+
