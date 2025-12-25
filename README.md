@@ -245,3 +245,33 @@ Setup Jenkins:
 - Create Pipeline, Copy Jenkins file.
 
 ### 4. Observability
+Use LGTM Stack
+
+Create 3 GCS bucket: `kltn-loki-data` , `kltn-mimir-data`, `kltn-tempo-data`
+
+Install:
+```bash
+kubectl create ns lgtm
+kubens lgtm
+kubectl create serviceaccount lgtm-ksa
+
+gcloud iam service-accounts add-iam-policy-binding \
+    yourserviceaccount@YOUR_PROJECT_ID.iam.gserviceaccount.com \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:YOUR_PROJECT_ID.svc.id.goog[lgtm/lgtm-ksa]"
+
+kubectl annotate serviceaccount lgtm-ksa \
+    -n lgtm \
+    iam.gke.io/gcp-service-account=yourserviceaccount@YOUR_PROJECT_ID.iam.gserviceaccount.com
+
+
+cd observability
+helm install loki ./loki
+helm install mimir ./mimir-distributed
+helm install tempo ./tempo
+helm install grafana ./grafana
+helm install alloy ./alloy
+```
+
+- Port-forward the Grafana service to access the Grafana UI.
+- Create dashboards to visualize system and pipeline metrics.
