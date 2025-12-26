@@ -90,8 +90,8 @@ uv run feast apply
 uv run feast materialize-incremental $MATERIALIZE_CHECKPOINT_TIME -v parent_asin_rating_stats -v parent_asin_rating_stats_fresh -v user_rating_stats -v user_rating_stats_fresh
 ```
 
-Finally, re-run the Airflow pipeline.
-
+Finally, re-run the Airflow pipeline.  
+![mô tả ảnh](images/airflow.png)  
 ### 3. Training Pipeline
 ![mô tả ảnh](images/training.png)  
 #### Prepare 
@@ -188,6 +188,9 @@ pipeline-runner is the service account used to run component in pipeline.
 - Create a pipeline using the `training_pipeline.yaml` file.
 - Create a run from the pipeline to start the training workflow.
 
+![mô tả ảnh](images/kubeflow.png)  
+
+
 ### 4. Serving Pipeline
 ![mô tả ảnh](images/api.png)   
 #### Deploy Components:
@@ -264,6 +267,9 @@ Setup Jenkins:
 - Create a Node connect to VM to run flow: `Manage Jenkins -> Nodes -> New Node -> Name: host-agent -> Launch method via SSH -> Host: VM IP -> Add credentials: User name with Private Key -> Add private key(should RSA Format) -> None Verification Strategy -> Save`
 - Create Pipeline, Copy Jenkins file.
 
+Jenkins triggers traffic rollout to the new model version.  
+
+![mô tả ảnh](images/rollout.png)  
 ### 5. Observability
 ![mô tả ảnh](images/lgtm.png)  
 
@@ -294,6 +300,9 @@ helm install tempo ./tempo
 helm install grafana ./grafana
 helm install alloy ./alloy
 ```
+
+![mô tả ảnh](images/log.png)  
+
 
 - Port-forward the Grafana service to access the Grafana UI.
 - Create dashboards to visualize system and pipeline metrics.
