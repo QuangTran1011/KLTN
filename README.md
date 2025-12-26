@@ -22,6 +22,33 @@ The system consists of three main workflows: the data pipeline, the training pip
       - [Continuous Deployment with Jenkins](#continuous-deployment-with-jenkins)
    - [5. Observability](#5-observability)
 ## Project Structure
+```bash
+├── airflow-dags
+│   ├── airflow
+│   ├── dags
+├── api
+├── ContinuousDeployment
+├── feature_pipeline
+│   ├── dbt
+│   ├── feature_store
+│   └── src
+├── iac_gke
+├── images
+├── mlflow
+├── model_server
+├── observability
+├── qdrant
+├── scripts
+│   └── check_oltp_max_timestamp.py
+├── src
+├── training_pipeline
+│   ├── finetuning.ipynb
+│   ├── pipeline
+│   ├── pipelines
+│   ├── src
+├── ui
+```
+
 ## Implementation
 ### 1. Set Up Environment
 Clone this repository
