@@ -4,6 +4,24 @@ An end-to-end, fully automated recommendation system covering the entire pipelin
 ## System Flow Overview
 The system consists of three main workflows: the data pipeline, the training pipeline, and the serving pipeline.
 ## Table of Contents
+1. [System Flow Overview](#system-flow-overview)
+2. [Project Structure](#project-structure)
+3. [Implementation](#implementation)
+   - [1. Set Up Environment](#1-set-up-environment)
+   - [2. Data Pipeline](#2-data-pipeline)
+     - [Prepare](#prepare)
+     - [Airflow Pipeline](#airflow-pipeline)
+   - [3. Training Pipeline](#3-training-pipeline)
+     - [Prepare](#prepare-1)
+     - [Workload Identity](#workload-identity)
+     - [MLflow](#mlflow)
+     - [Training Pipeline](#training-pipeline)
+   - [Serving Pipeline](#serving-pipeline)
+     - [Deploy Components](#deploy-components)
+     - [Precompute](#precompute)
+     - [UI](#ui)
+     - [Continuous Deployment with Jenkins](#continuous-deployment-with-jenkins)
+4. [Observability](#4-observability)
 ## Project Structure
 ## Implementation
 ### 1. Set Up Environment
