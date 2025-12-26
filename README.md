@@ -16,9 +16,10 @@ The system consists of three main workflows: the data pipeline, the training pip
      - [Workload Identity](#workload-identity)
      - [MLflow](#mlflow)
      - [Training Pipeline](#training-pipeline)
-   - [Serving Pipeline](#serving-pipeline)
-   - [Continuous Deployment with Jenkins](#continuous-deployment-with-jenkins)
-4. [Observability](#4-observability)
+   - [4. Serving Pipeline](#4-serving-pipeline)
+      - [Deploy Components](#deploy-components) 
+      - [Continuous Deployment with Jenkins](#continuous-deployment-with-jenkins)
+5. [Observability](#5-observability)
 ## Project Structure
 ## Implementation
 ### 1. Set Up Environment
@@ -184,8 +185,8 @@ pipeline-runner is the service account used to run component in pipeline.
 - Create a pipeline using the `training_pipeline.yaml` file.
 - Create a run from the pipeline to start the training workflow.
 
-#### Serving Pipeline
-Deploy Components:
+### 4. Serving Pipeline
+#### Deploy Components:
 ```bash
 helm install qdrant ./qdrant
 cd feature_pipeline/feature_store
@@ -259,7 +260,7 @@ Setup Jenkins:
 - Create a Node connect to VM to run flow: `Manage Jenkins -> Nodes -> New Node -> Name: host-agent -> Launch method via SSH -> Host: VM IP -> Add credentials: User name with Private Key -> Add private key(should RSA Format) -> None Verification Strategy -> Save`
 - Create Pipeline, Copy Jenkins file.
 
-### 4. Observability
+### 5. Observability
 Use LGTM Stack
 
 Create 3 GCS bucket: `kltn-loki-data` , `kltn-mimir-data`, `kltn-tempo-data`
