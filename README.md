@@ -20,7 +20,7 @@ The system consists of three main workflows: the data pipeline, the training pip
    - [4. Serving Pipeline](#4-serving-pipeline)
       - [Deploy Components](#deploy-components) 
       - [Continuous Deployment with Jenkins](#continuous-deployment-with-jenkins)
-5. [Observability](#5-observability)
+   - [5. Observability](#5-observability)
 ## Project Structure
 ## Implementation
 ### 1. Set Up Environment
