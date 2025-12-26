@@ -17,10 +17,7 @@ The system consists of three main workflows: the data pipeline, the training pip
      - [MLflow](#mlflow)
      - [Training Pipeline](#training-pipeline)
    - [Serving Pipeline](#serving-pipeline)
-     - [Deploy Components](#deploy-components)
-     - [Precompute](#precompute)
-     - [UI](#ui)
-     - [Continuous Deployment with Jenkins](#continuous-deployment-with-jenkins)
+   - [Continuous Deployment with Jenkins](#continuous-deployment-with-jenkins)
 4. [Observability](#4-observability)
 ## Project Structure
 ## Implementation
