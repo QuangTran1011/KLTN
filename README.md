@@ -1,4 +1,4 @@
-# RecSys
+# AutoRecSys: A Fully Automated End-to-End Recommendation System on GCP
 An end-to-end, fully automated recommendation system covering the entire pipeline from data processing to cloud-native serving, providing standardized workflows for training, fine-tuning, deployment, and online serving, integrated with modern MLOps tools.
 
 ## System Flow Overview
