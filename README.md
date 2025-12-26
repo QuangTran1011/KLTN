@@ -3,7 +3,7 @@ An end-to-end, fully automated recommendation system covering the entire pipelin
 
 ## System Flow Overview
 ![mô tả ảnh](images/system.png)  
-The system consists of three main workflows: the data pipeline, the training pipeline, and the serving pipeline.
+The system consists of three main workflows: the data pipeline, the training pipeline, and the serving pipeline. New data is updated periodically, and whenever new data is available, the pipelines are automatically triggered to ensure the system continuously captures the latest customer behavior.
 ## Table of Contents
 1. [System Flow Overview](#system-flow-overview)
 2. [Project Structure](#project-structure)
