@@ -4,7 +4,7 @@ from google.cloud import bigquery
 import glob
 import os
 
-PROJECT_ID = "big-potential-478810-t1"
+PROJECT_ID = "turing-thought-481409-d8"
 DATASET_ID = "kltn"
 TABLE_ID = "item_meta_data"
 
@@ -24,7 +24,7 @@ def upload():
     lambda x: next((i for i in x.get("large", []) if i is not None), None)
 )
     full_df = full_df[['parent_asin', 'main_category', 'categories', 'price', 'image', 'title']]
-    # 🚀 Upload lên BigQuery
+    # Upload lên BigQuery
 
     client = bigquery.Client(project=PROJECT_ID)
     table_ref = client.dataset(DATASET_ID).table(TABLE_ID)
@@ -37,7 +37,7 @@ def upload():
     job = client.load_table_from_dataframe(full_df, table_ref, job_config=job_config)
     job.result()  
 
-    print(f"✅ Đã upload {len(full_df)} dòng lên bảng {DATASET_ID}.{TABLE_ID}")
+    print(f"Đã upload {len(full_df)} dòng lên bảng {DATASET_ID}.{TABLE_ID}")
 
 if __name__ == "__main__":
     upload()

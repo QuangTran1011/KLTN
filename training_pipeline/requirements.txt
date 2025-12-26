@@ -14,5 +14,5 @@ scikit-learn==1.7.2
 dill==0.3.8
 torchmetrics==1.8.2
 qdrant-client==1.12.1
-feast[redis]==0.50.0
+feast[gcp,redis]==0.50.0
 scipy==1.16.2

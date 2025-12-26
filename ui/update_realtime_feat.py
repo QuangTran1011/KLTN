@@ -6,13 +6,14 @@ from typing import List
 import requests
 from loguru import logger
 
-FEAST_ONLINE_SERVER_HOST = "localhost"
-FEAST_ONLINE_SERVER_PORT = 8815
+FEAST_ONLINE_SERVER_HOST = "feast.kltn.com"
+FEAST_ONLINE_SERVER_PORT = 80
 
 
 def get_user_item_sequence(user_id: str):
     # Define the URL
-    url = "http://localhost:8000/recs/get_user_feature"  
+    API_BASE_URL = "http://kltn.recsys.com"
+    url = f"{API_BASE_URL}/recs/get_user_feature"
 
     headers = {
         "accept": "application/json",
@@ -148,8 +149,3 @@ def push_new_item_sequence(
         logger.error(f"Error in push_new_item_sequence: {e}", exc_info=True)
         raise
 
-
-# push_new_item_sequence(
-#     'AEHS443XTMNSX4TNW2YYLWND6FTQ',
-#     ['B079L5T84M']
-# )

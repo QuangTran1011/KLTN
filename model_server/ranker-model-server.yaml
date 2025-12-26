@@ -19,7 +19,7 @@ spec:
             - containerPort: 3000
           env:
             - name: MLFLOW_TRACKING_URI
-              value: "http://34.69.242.168:8080"
+              value: "http://34.172.241.248:8080"
             - name: QDRANT_HOST
               value: "http://qdrant"
             - name: QDRANT_PORT

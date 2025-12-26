@@ -13,20 +13,20 @@ from airflow.kubernetes.secret import Secret
 BUCKET = "kltn--data"
 PREFIX = "partitiondata/"
 FILE_PATTERN = r"recsys_data_upto_(\d{4})_(\d{2})_(\d{2})\.parquet"
-IMAGE = "quangtran1011/airflow_all_in_one:v4"
+IMAGE = "quangtran1011/airflow_all_in_one:v18"
 
 default_args = {
     "owner": "airflow",
     "retries": 1,
-    "retry_delay": timedelta(minutes=5),
+    "retry_delay": timedelta(minutes=1),
 }
 
 # Secret mount for GCP service account
 gcp_sa_secret = Secret(
-    deploy_type="volume",        # mount secret dưới dạng volume
-    secret="gcp-sa-secret",         # tên Kubernetes Secret
-    field="gcp-key.json",        # tên key trong secret
-    mount_path="/var/secrets/google"  # mount vào container
+    deploy_type='volume',            # mount as volume
+    deploy_target='/var/secrets/google',  # mount path in container (was 'mount_point')
+    secret='gcp-sa-secret',             # name of K8s secret
+    key='gcp-key.json'               # key file name inside secret
 )
 env_sa = {"GOOGLE_APPLICATION_CREDENTIALS": "/var/secrets/google/gcp-key.json"}
 
@@ -88,9 +88,27 @@ with DAG(
         image=IMAGE,
         cmds=["/opt/spark/bin/spark-submit"],
         arguments=[
-            "--master", "k8s://https://34.118.224.1:443",
+            "--master", "k8s://https://136.115.43.206:443",
             "--deploy-mode", "cluster",
+        
+            "--conf", "spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem",
+            "--conf", "spark.hadoop.fs.AbstractFileSystem.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS",
             "--conf", "spark.kubernetes.namespace=serving",
+            "--conf", f"spark.kubernetes.container.image={IMAGE}", 
+            "--conf", "spark.kubernetes.authenticate.driver.serviceAccountName=default",
+            "--conf", "spark.kubernetes.driver.secrets.gcp-sa-secret=/var/secrets/google",  
+            "--conf", "spark.kubernetes.executor.secrets.gcp-sa-secret=/var/secrets/google",
+            "--conf", "spark.kubernetes.driverEnv.PYTHONPATH=/app:/app/modules",
+            "--conf", "spark.kubernetes.executorEnv.PYTHONPATH=/app:/app/modules",
+            
+            # Set env var cho driver và executor
+            "--conf", "spark.kubernetes.driverEnv.GOOGLE_APPLICATION_CREDENTIALS=/var/secrets/google/gcp-key.json",
+            "--conf", "spark.kubernetes.executorEnv.GOOGLE_APPLICATION_CREDENTIALS=/var/secrets/google/gcp-key.json",
+            # Giảm CPU
+            "--conf", "spark.driver.cores=1",
+            "--conf", "spark.executor.cores=2",
+            "--conf", "spark.driver.memory=1g",
+            "--conf", "spark.executor.memory=14g",
             "local:///app/spark_job/sampling.py",
         ],
         get_logs=True,
@@ -107,9 +125,28 @@ with DAG(
         image=IMAGE,
         cmds=["/opt/spark/bin/spark-submit"],
         arguments=[
-            "--master", "k8s://https://34.118.224.1:443",
+            "--master", "k8s://https://136.115.43.206:443",
             "--deploy-mode", "cluster",
+        
+            "--conf", "spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem",
+            "--conf", "spark.hadoop.fs.AbstractFileSystem.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS",
             "--conf", "spark.kubernetes.namespace=serving",
+            "--conf", f"spark.kubernetes.container.image={IMAGE}",  
+            "--conf", "spark.kubernetes.authenticate.driver.serviceAccountName=default",
+            "--conf", "spark.kubernetes.driver.secrets.gcp-sa-secret=/var/secrets/google", 
+            "--conf", "spark.kubernetes.executor.secrets.gcp-sa-secret=/var/secrets/google",
+            "--conf", "spark.kubernetes.driverEnv.PYTHONPATH=/app:/app/modules",
+            "--conf", "spark.kubernetes.executorEnv.PYTHONPATH=/app:/app/modules",
+            
+            # Set env var cho driver và executor
+            "--conf", "spark.kubernetes.driverEnv.GOOGLE_APPLICATION_CREDENTIALS=/var/secrets/google/gcp-key.json",
+            "--conf", "spark.kubernetes.executorEnv.GOOGLE_APPLICATION_CREDENTIALS=/var/secrets/google/gcp-key.json",
+            # Giảm CPU
+            "--conf", "spark.driver.cores=1",
+            "--conf", "spark.executor.cores=2",
+            "--conf", "spark.driver.memory=1g",
+            "--conf", "spark.executor.memory=14g",
+
             "local:///app/spark_job/sampling_item.py",
         ],
         get_logs=True,
@@ -117,6 +154,7 @@ with DAG(
         secrets=[gcp_sa_secret],
         env_vars=env_sa,
     )
+
 
     upload_to_dbms = KubernetesPodOperator(
         task_id="upload_to_dbms",
@@ -129,6 +167,7 @@ with DAG(
         is_delete_operator_pod=True,
         secrets=[gcp_sa_secret],
         env_vars=env_sa,
+        service_account_name="default",
     )
 
     # ----------------------------
@@ -140,11 +179,16 @@ with DAG(
         namespace="serving",
         image=IMAGE,
         cmds=["dbt"],
-        arguments=["build", "--project-dir", "/app/dbt_project/kltn"],
+        arguments=[
+        "build",
+        "--project-dir", "/app/dbt_project/kltn",
+        "--profiles-dir", "/app/dbt_project/kltn" 
+        ],
         get_logs=True,
         is_delete_operator_pod=True,
         secrets=[gcp_sa_secret],
         env_vars=env_sa,
+        service_account_name="default",
     )
 
     # ----------------------------
@@ -155,16 +199,19 @@ with DAG(
         name="feast-materialize",
         namespace="serving",
         image=IMAGE,
-        cmds=["feast"],
+        cmds=["sh", "-c"],
         arguments=[
-            "materialize-incremental",
-            str(datetime.utcnow().date()),
-            "--feature-store", "/app/feature_repo/feature_store.yaml",
+            """
+            cd /app/feature_repo && 
+            CURRENT_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S") &&
+            feast materialize-incremental $CURRENT_TIME
+            """
         ],
         get_logs=True,
         is_delete_operator_pod=True,
         secrets=[gcp_sa_secret],
         env_vars=env_sa,
+        service_account_name="default",
     )
 
     # ----------------------------

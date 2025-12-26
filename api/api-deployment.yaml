@@ -21,7 +21,7 @@ spec:
             - containerPort: 8000
           env:
             - name: REDIS_HOST
-              value: "10.7.17.5"
+              value: "10.29.49.4"
             - name: MODEL_SERVER_URL
               value: "http://ranker-model-server:3000"
             - name: FEAST_ONLINE_SERVER_HOST
@@ -29,6 +29,7 @@ spec:
             - name: FEAST_ONLINE_SERVER_PORT
               value: "6566"
       restartPolicy: Always
+      
 ---
 apiVersion: v1
 kind: Service

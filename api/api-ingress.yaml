@@ -4,6 +4,7 @@ metadata:
   name: kltn-api-ingress
   annotations:
     kubernetes.io/ingress.class: "nginx"
+    
 spec:
   rules:
     - host: kltn.recsys.com

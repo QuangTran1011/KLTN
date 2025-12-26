@@ -13,7 +13,7 @@ user = Entity(name="user", join_keys=["user_id"], value_type=ValueType.STRING)
 user_rating_stats_source = BigQuerySource(
     name="user_rating_stats_source",
     query="""
-        SELECT * FROM `big-potential-478810-t1.kltn.user_rating_stats_test`
+        SELECT * FROM `turing-thought-481409-d8.kltn.user_rating_stats_test`
     """,
     timestamp_field="timestamp",
 )

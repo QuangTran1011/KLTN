@@ -1,3 +1,5 @@
+# this file paritition raw data to simulate schedule update by partition
+
 from pyspark.sql import SparkSession
 from dotenv import load_dotenv
 from pyspark.sql.functions import col, from_unixtime, date_format

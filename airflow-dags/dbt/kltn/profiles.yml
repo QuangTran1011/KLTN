@@ -3,7 +3,7 @@ kltn:
     dev:
       type: bigquery
       method: service-account
-      project: big-potential-478810-t1
+      project: turing-thought-481409-d8
       dataset: kltn
       keyfile: /var/secrets/google/gcp-key.json
       threads: 4

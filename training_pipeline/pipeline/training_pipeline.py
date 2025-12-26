@@ -65,7 +65,7 @@ def submit_pytorch_job_skipgram(bucket_name: str, yaml_skipgram_gcs_path: str):
     
 
 @dsl.component(
-    base_image="quangtran1011/training_pipeline:v16",
+    base_image="quangtran1011/training_pipeline:v19",
 )
 def prep_feature():
     import subprocess

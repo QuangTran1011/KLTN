@@ -11,12 +11,12 @@ spec:
       template:
         metadata:
           annotations:
-            iam.gke.io/gcp-service-account: "249978252226-compute@developer.gserviceaccount.com"
+            iam.gke.io/gcp-service-account: "164485441658-compute@developer.gserviceaccount.com"
         spec:
           serviceAccountName: default
           containers:
             - name: pytorch
-              image: quangtran1011/training_pipeline:v18
+              image: quangtran1011/training_pipeline:v19
               command: 
                 - python
                 - -m
@@ -26,9 +26,68 @@ spec:
                   value: "1"
                 - name: OMP_NUM_THREADS
                   value: "2"
-                - name: MLFLOW_URI
-                  value: "http://34.69.242.168:8080"
-                # Không cần MASTER_ADDR, MASTER_PORT, WORLD_SIZE, RANK
+                - name: MLFLOW_TRACKING_URI
+                  value: "http://34.172.241.248:8080"
+                - name: MASTER_ADDR
+                  value: "skipgram-train-master-0"
+                - name: MASTER_PORT
+                  value: "23456"
+                - name: WORLD_SIZE
+                  value: "2"
+                - name: RANK
+                  value: "0"
+              resources:
+                limits:
+                  memory: "10Gi"
+                  cpu: "1"
+                requests:
+                  memory: "8Gi"
+                  cpu: "1"
+              volumeMounts:
+                - name: data
+                  mountPath: /mnt/pvc
+                - name: dshm
+                  mountPath: /dev/shm
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: skipgram-pvc
+            - name: dshm
+              emptyDir:
+                medium: Memory
+                sizeLimit: "2Gi"
+                
+    Worker:
+      replicas: 1
+      restartPolicy: OnFailure
+      template:
+        metadata:
+          annotations:
+            iam.gke.io/gcp-service-account: "164485441658-compute@developer.gserviceaccount.com"
+        spec:
+          serviceAccountName: default
+          containers:
+            - name: pytorch
+              image: quangtran1011/training_pipeline:v19
+              command: 
+                - python
+                - -m
+                - src.itemtovec
+              env:
+                - name: PYTHONUNBUFFERED
+                  value: "1"
+                - name: OMP_NUM_THREADS
+                  value: "2"
+                - name: MLFLOW_TRACKING_URI
+                  value: "http://34.172.241.248:8080"
+                - name: MASTER_ADDR
+                  value: "skipgram-train-master-0"
+                - name: MASTER_PORT
+                  value: "23456"
+                - name: WORLD_SIZE
+                  value: "2"
+                - name: RANK
+                  value: "1"
               resources:
                 limits:
                   memory: "10Gi"

@@ -10,7 +10,7 @@ sys.path.insert(0, "../..")
 
 from src.id_mapper import IDMapper
 
-mlflow.set_tracking_uri("http://34.69.242.168:8080/")
+mlflow.set_tracking_uri("http://34.172.241.248:8080/")
 
 mlf_client = mlflow.MlflowClient()
 model = mlflow.pyfunc.load_model(
@@ -36,7 +36,7 @@ with open("/home/quangtran/Documents/KLTN2/data/idm.json", "w") as f:
 
 id_mapping = IDMapper().load("/home/quangtran/Documents/KLTN2/data/idm.json")
 
-ann_index = QdrantClient("localhost:6333", timeout=120.0, prefer_grpc=True)
+ann_index = QdrantClient("localhost:6332", timeout=120.0, prefer_grpc=True)
 
 collection_exists = ann_index.collection_exists(collection_name)
 if collection_exists:

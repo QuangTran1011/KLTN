@@ -2,12 +2,12 @@ project: kltn
 provider: local
 registry:
     type: file
-    path: gs://feast-data/registrytest.db
+    path: gs://feast-data/registry.db
 online_store:
     type: redis
-    connection_string: "10.7.17.5:6379"
+    connection_string: "10.29.49.4:6379"
 offline_store:
   type: bigquery
-  project_id: big-potential-478810-t1
+  project_id: turing-thought-481409-d8
   dataset: kltn
 entity_key_serialization_version: 2

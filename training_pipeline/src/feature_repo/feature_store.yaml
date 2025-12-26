@@ -5,9 +5,9 @@ registry:
     path: gs://feast-data/registry.db
 online_store:
     type: redis
-    connection_string: "10.7.17.3:6379"
+    connection_string: "localhost:6379"
 offline_store:
   type: bigquery
-  project_id: big-potential-478810-t1
+  project_id: turing-thought-481409-d8
   dataset: kltn
 entity_key_serialization_version: 2

@@ -1,3 +1,6 @@
+# this file paritition raw data to simulate schedule update by partition
+
+
 import pandas as pd
 import io
 import os

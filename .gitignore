@@ -9,6 +9,7 @@ wheels/
 # Virtual environments
 .venv
 .env
+secret
 
 registrytest.db
 notebooks

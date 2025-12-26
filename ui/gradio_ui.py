@@ -7,10 +7,10 @@ from update_realtime_feat import push_new_item_sequence
 from loguru import logger
 
 # Cấu hình API endpoint
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "http://kltn.recsys.com"
 
 # Cấu hình BigQuery
-BQ_PROJECT_ID = "big-potential-478810-t1"  
+BQ_PROJECT_ID = "turing-thought-481409-d8"  
 BQ_DATASET = "kltn"  
 BQ_TABLE = "item_meta_data"  
 

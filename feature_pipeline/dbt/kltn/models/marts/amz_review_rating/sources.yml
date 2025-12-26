@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: amz_review_rating
-    database: big-potential-478810-t1
+    database: turing-thought-481409-d8
     schema: kltn
     tables:
-      - name: traindatareview
+      - name: traindatareviewtest

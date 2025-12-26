@@ -148,7 +148,7 @@ deploymentSpec:
           \ code: {result.returncode}\")\n    print(f\"STDOUT: {result.stdout}\")\n\
           \    print(f\"STDERR: {result.stderr}\")\n\n    if result.returncode !=\
           \ 0:\n        raise Exception(f\"ERROR: {result.stderr}\")\n\n"
-        image: quangtran1011/training_pipeline:v16
+        image: quangtran1011/training_pipeline:v19
     exec-submit-pytorch-job-ranking:
       container:
         args:

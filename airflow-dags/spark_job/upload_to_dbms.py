@@ -5,7 +5,7 @@ from google.cloud import bigquery
 # import os
 # import glob
 
-PROJECT_ID = "big-potential-478810-t1"
+PROJECT_ID = "turing-thought-481409-d8"
 DATASET_ID = "kltn"
 TABLE_ID = "traindatareviewtest"
 
@@ -39,19 +39,19 @@ def concat_and_upload():
     df_train = load_parquet_from_gcs(TRAIN_PATH)
     df_test = load_parquet_from_gcs(TEST_PATH)
 
-    print(f"✅ Train: {len(df_train)} dòng | Test: {len(df_test)} dòng")
+    print(f"Train: {len(df_train)} dòng | Test: {len(df_test)} dòng")
 
-    # 🔗 Gộp 2 tập
+    # Gộp 2 tập
     df_all = pd.concat([df_train, df_test], ignore_index=True).pipe(parse_dt)
 
-    # 🧹 Xóa cột images nếu tồn tại
+    # Xóa cột images nếu tồn tại
     if "images" in df_all.columns:
         df_all = df_all.drop(columns=["images"])
         print("🗑️ Đã xóa cột 'images' trước khi upload")
 
-    print(f"📊 Tổng cộng: {len(df_all)} dòng sau khi concat")
+    print(f"Tổng cộng: {len(df_all)} dòng sau khi concat")
 
-    # 🚀 Upload lên BigQuery
+    # Upload lên BigQuery
     client = bigquery.Client(project=PROJECT_ID)
     table_ref = client.dataset(DATASET_ID).table(TABLE_ID)
 
@@ -63,7 +63,7 @@ def concat_and_upload():
     job = client.load_table_from_dataframe(df_all, table_ref, job_config=job_config)
     job.result()  # Chờ job hoàn tất
 
-    print(f"✅ Đã upload {len(df_all)} dòng lên bảng {DATASET_ID}.{TABLE_ID}")
+    print(f"Đã upload {len(df_all)} dòng lên bảng {DATASET_ID}.{TABLE_ID}")
 
 if __name__ == "__main__":
     concat_and_upload()

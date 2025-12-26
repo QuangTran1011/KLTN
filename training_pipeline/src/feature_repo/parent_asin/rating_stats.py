@@ -13,7 +13,7 @@ parent_asin = Entity(name="parent_asin", join_keys=["parent_asin"], value_type=V
 parent_asin_rating_stats_source = BigQuerySource(
     name="parent_asin_rating_stats_source",
     query="""
-        SELECT * FROM `big-potential-478810-t1.kltn.parent_asin_rating_stats_test`
+        SELECT * FROM `turing-thought-481409-d8.kltn.parent_asin_rating_stats_test`
     """,
     timestamp_field="timestamp",
 )

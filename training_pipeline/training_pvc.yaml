@@ -9,8 +9,8 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    server: 10.7.17.18
-    path: /skipgram    
+    server: 10.29.49.18
+    path: /filetraining
   mountOptions:
     - hard
     - nfsvers=3

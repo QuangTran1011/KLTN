@@ -3,9 +3,9 @@ kltn:
     dev:
       type: bigquery
       method: service-account
-      project: big-potential-478810-t1
+      project: turing-thought-481409-d8
       dataset: kltn
-      keyfile: /home/quangtran/Documents/KLTN2/secrect/big-potential-478810-t1-45a8acfc699b.json
+      keyfile: /home/quangtran/Documents/KLTN2/secret/turing-thought-481409-d8-a5c14752f4af.json
       threads: 4
       timeout_seconds: 300
   target: dev
