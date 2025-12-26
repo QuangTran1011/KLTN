@@ -240,6 +240,10 @@ sudo vim /etc/hosts: insert `<Ingress Controller IP>  kltn.recsys.com` and `<Ing
 run file `gradio_ui.py`
 ```
 
+![mô tả ảnh](images/apiui.png)  
+![mô tả ảnh](images/ui.png)  
+
+
 #### Continuous Deployment with Jenkins
 Jenkins triggers MLflow to perform a rolling deployment of the latest model.
 
@@ -266,6 +270,9 @@ Setup Jenkins:
 - Open firewall and access Jenkins Web.
 - Create a Node connect to VM to run flow: `Manage Jenkins -> Nodes -> New Node -> Name: host-agent -> Launch method via SSH -> Host: VM IP -> Add credentials: User name with Private Key -> Add private key(should RSA Format) -> None Verification Strategy -> Save`
 - Create Pipeline, Copy Jenkins file.
+
+![mô tả ảnh](images/jenkinconf.png)  
+
 
 Jenkins triggers traffic rollout to the new model version.  
 
