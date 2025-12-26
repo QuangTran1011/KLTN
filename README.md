@@ -23,30 +23,30 @@ The system consists of three main workflows: the data pipeline, the training pip
    - [5. Observability](#5-observability)
 ## Project Structure
 ```bash
-├── airflow-dags
-│   ├── airflow
-│   ├── dags
-├── api
-├── ContinuousDeployment
-├── feature_pipeline
-│   ├── dbt
-│   ├── feature_store
-│   └── src
-├── iac_gke
-├── images
-├── mlflow
-├── model_server
-├── observability
-├── qdrant
-├── scripts
-│   └── check_oltp_max_timestamp.py
-├── src
-├── training_pipeline
-│   ├── finetuning.ipynb
-│   ├── pipeline
-│   ├── pipelines
-│   ├── src
-├── ui
+├── airflow-dags                              // Airflow Data pipeline
+│   ├── airflow                               // airflow chart
+│   ├── dags                                  // dags to run pipeline
+├── api                                       // FastAPI with nginx ingress
+├── ContinuousDeployment                      // Copy to VM and Deploy Jenkins to trigger new model
+├── feature_pipeline                          // compute feature with DBT and run Feature Store local.
+│   ├── dbt                                   // dbt with BigQuery to compute feature
+│   ├── feature_store                         // feature store with BigQuery and Redis(GCP CLoudMemory)
+│   └── src                                   // source code upload data to BigQuery
+├── iac_gke                                   // terraform file to create k8s cluster
+├── images                                    // images
+├── mlflow                                    // mlflow folder copy to VM and create Mlflow with GCS and CloudSQL
+├── model_server                              // BentoML Model Server with Kserver and rollout traffic model 
+├── observability                             // LGTM stack with Alloy
+├── qdrant                                    // vector store
+├── scripts                              
+│   └── check_oltp_max_timestamp.py           // check max time stamp to materialize feast
+├── src                                       // source code developed and tested locally during project development
+├── training_pipeline                         // training pipeline with kubeflow
+│   ├── finetuning.ipynb                      // finetune small language model to tagging item
+│   ├── pipeline                              // kubeflow pipeline with pytorchjob
+│   ├── pipelines                             // src to install kubeflow
+│   ├── src                                   // source code to build pipeline component.
+├── ui                                        // gradio ui
 ```
 
 ## Implementation
