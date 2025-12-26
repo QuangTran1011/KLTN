@@ -37,6 +37,7 @@ Set up Cloud(GCP):
 - Dowload Service Account Key (Json)
 
 ### 2. Data Pipeline
+![mô tả ảnh](images/data.png)  
 #### Prepare
 Create Secret from service account:
 ```bash
@@ -92,6 +93,7 @@ uv run feast materialize-incremental $MATERIALIZE_CHECKPOINT_TIME -v parent_asin
 Finally, re-run the Airflow pipeline.
 
 ### 3. Training Pipeline
+![mô tả ảnh](images/training.png)  
 #### Prepare 
 Install Kubeflow:
 ```bash
@@ -187,6 +189,7 @@ pipeline-runner is the service account used to run component in pipeline.
 - Create a run from the pipeline to start the training workflow.
 
 ### 4. Serving Pipeline
+![mô tả ảnh](images/api.png)   
 #### Deploy Components:
 ```bash
 helm install qdrant ./qdrant
@@ -262,6 +265,8 @@ Setup Jenkins:
 - Create Pipeline, Copy Jenkins file.
 
 ### 5. Observability
+![mô tả ảnh](images/lgtm.png)  
+
 Use LGTM Stack
 
 Create 3 GCS bucket: `kltn-loki-data` , `kltn-mimir-data`, `kltn-tempo-data`
