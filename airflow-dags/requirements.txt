@@ -1,0 +1,9 @@
+pydantic==2.10.6
+loguru==0.7.3
+pyspark==4.0.0
+dbt-bigquery==1.10.2
+google-cloud-bigquery==3.38.0
+google-cloud-storage
+gcsfs==2024.6.1
+apache-airflow==2.10.2
+feast[redis]==0.50.0
