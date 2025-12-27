@@ -1,0 +1,22 @@
+services:
+  api:
+    container_name: api
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    # env_file:
+    #   - .env
+    environment:
+      - REDIS_HOST=kv_store
+      - MODEL_SERVER_URL=http://ranker_model_server:3000
+      - FEAST_ONLINE_SERVER_HOST=feature_online_server
+    # volumes:
+    #   - ./api:/app/api
+    command: ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    networks:
+      - kltn
+
+networks:
+  kltn:
+    external: true

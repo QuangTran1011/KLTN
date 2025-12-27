@@ -1,0 +1,48 @@
+services:
+
+  kv_store:
+    image: redis:7.2-bookworm
+    container_name: kv_store
+    ports:
+      - "6378:6379"
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 50
+      start_period: 30s
+    networks:
+      - kltn
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.0
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./data/qdrant_storage:/qdrant/storage:z
+    restart: always
+    networks:
+      - kltn
+
+  feature_online_server:
+    container_name: feature_online_server
+    build:
+      context: ./feature_pipeline/feature_store
+      dockerfile: Dockerfile
+    ports:
+      - "8815:6566"
+    entrypoint: ["feast", "serve", "--port", "6566", "--host", "0.0.0.0"]
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/secrets/gcp-key.json
+    volumes:
+      - /home/quangtran/Documents/KLTN2/secrect/big-potential-478810-t1-45a8acfc699b.json:/secrets/gcp-key.json:ro
+    networks:
+      - kltn
+
+networks:
+  kltn:
+    name: kltn    
+    driver: bridge
