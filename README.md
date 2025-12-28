@@ -8,6 +8,12 @@ The system consists of three main workflows: the data pipeline, the training pip
 ### Model:
 ![mô tả ảnh](images/tt7.png)  
 
+### Distributed Training:
+![mô tả ảnh](images/train.png)  
+
+### Serving Pipeline
+![mô tả ảnh](images/apipipeline.png)  
+
 ## Table of Contents
 1. [System Flow Overview](#system-flow-overview)
 2. [Project Structure](#project-structure)
@@ -68,7 +74,6 @@ Set up Cloud(GCP):
 - Dowload Service Account Key (Json)
 
 ### 2. Data Pipeline
-![mô tả ảnh](images/data.png)  
 #### Prepare
 Create Secret from service account:
 ```bash
@@ -124,7 +129,6 @@ uv run feast materialize-incremental $MATERIALIZE_CHECKPOINT_TIME -v parent_asin
 Finally, re-run the Airflow pipeline.  
 ![mô tả ảnh](images/airflow.png)  
 ### 3. Training Pipeline
-![mô tả ảnh](images/training.png)  
 #### Prepare 
 Install Kubeflow:
 ```bash
@@ -223,7 +227,6 @@ pipeline-runner is the service account used to run component in pipeline.
 
 
 ### 4. Serving Pipeline
-![mô tả ảnh](images/api.png)   
 #### Deploy Components:
 ```bash
 helm install qdrant ./qdrant
