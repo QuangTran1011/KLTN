@@ -1,0 +1,2 @@
+feast[redis]==0.50.0
+feast[gcp]==0.50.0

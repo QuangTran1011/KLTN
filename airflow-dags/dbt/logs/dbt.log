@@ -1,0 +1,34 @@
+[0m16:30:40.458255 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x76e182762db0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x76e182ab23f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x76e182ab26c0>]}
+
+
+============================== 16:30:40.463779 | 242f959f-56a5-4826-a169-f77ea33aea77 ==============================
+[0m16:30:40.463779 [info ] [MainThread]: Running with dbt=1.10.13
+[0m16:30:40.464179 [debug] [MainThread]: running dbt with arguments {'use_colors': 'True', 'partial_parse': 'True', 'version_check': 'True', 'empty': 'None', 'warn_error': 'None', 'profiles_dir': '/home/quangtran/.dbt', 'send_anonymous_usage_stats': 'True', 'printer_width': '80', 'target_path': 'None', 'log_format': 'default', 'indirect_selection': 'eager', 'use_experimental_parser': 'False', 'quiet': 'False', 'log_cache_events': 'False', 'fail_fast': 'False', 'log_path': 'logs', 'no_print': 'None', 'cache_selected_only': 'False', 'write_json': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'introspect': 'True', 'debug': 'False', 'invocation_command': 'dbt init', 'static_parser': 'True'}
+[0m16:30:40.491719 [info ] [MainThread]: Creating dbt configuration folder at /home/quangtran/.dbt
+[0m16:31:04.518884 [debug] [MainThread]: Starter project path: /home/quangtran/KLTN/.venv/lib/python3.12/site-packages/dbt/include/starter_project
+[0m16:31:04.520442 [info ] [MainThread]: 
+Your new dbt project "kltn" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m16:31:04.520755 [info ] [MainThread]: Setting up your profile.
+[0m16:31:10.212380 [debug] [MainThread]: Spark adapter: Setting pyhive.hive logging to ERROR
+[0m16:31:10.212763 [debug] [MainThread]: Spark adapter: Setting thrift.transport logging to ERROR
+[0m16:31:10.212977 [debug] [MainThread]: Spark adapter: Setting thrift.protocol logging to ERROR
+[0m16:34:11.809777 [info ] [MainThread]: Profile kltn written to /home/quangtran/.dbt/profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
+[0m16:34:11.810609 [debug] [MainThread]: Resource report: {"command_name": "init", "command_success": true, "command_wall_clock_time": 211.39412, "process_in_blocks": "46336", "process_kernel_time": 0.157927, "process_mem_max_rss": "109064", "process_out_blocks": "24256", "process_user_time": 1.940936}
+[0m16:34:11.811033 [debug] [MainThread]: Command `dbt init` succeeded at 16:34:11.810935 after 211.39 seconds
+[0m16:34:11.811317 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x76e185bb3770>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x76e182a44860>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x76e18214e840>]}
+[0m16:34:11.811623 [debug] [MainThread]: Flushing usage events
+[0m16:34:11.983996 [debug] [MainThread]: An error was encountered while trying to flush usage events

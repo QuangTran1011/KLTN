@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+secret
+
+registrytest.db
+notebooks
+src/features_merged.parquet
+src/llm_tag_data.parquet
+src/precompute/redisrun.py
+data

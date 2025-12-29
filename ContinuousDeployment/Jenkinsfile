@@ -1,0 +1,23 @@
+pipeline {
+    agent { label 'host-agent' }
+
+    environment {
+        KUBECONFIG = "/home/quangtran/.kube/config"
+        USE_GKE_GCLOUD_AUTH_PLUGIN = 'True'
+        PATH = "/home/quangtran/google-cloud-sdk/bin:${env.PATH}"
+    }
+
+    triggers {
+        cron('H 3 * * *')
+    }
+
+    stages {
+        stage('Check and deploy') {
+            steps {
+                sh '''
+            python3 /home/quangtran/check_new_model.py
+        '''
+            }
+        }
+    }
+}
