@@ -2,11 +2,17 @@
 An end-to-end, fully automated recommendation system covering the entire pipeline from data processing to cloud-native serving, providing standardized workflows for training, fine-tuning, deployment, and online serving, integrated with modern MLOps tools.
 
 ## System Flow Overview
-![mô tả ảnh](images/system.png)  
+![mô tả ảnh](images/fullsystem.png)  
 The system consists of three main workflows: the data pipeline, the training pipeline, and the serving pipeline. New data is updated periodically, and whenever new data is available, the pipelines are automatically triggered to ensure the system continuously captures the latest customer behavior.
 
 ### Model:
 ![mô tả ảnh](images/tt7.png)  
+
+### Training Pipeline:
+![mô tả ảnh](images/Kubeflow.png)  
+
+### API:
+![mô tả ảnh](images/Kubeflow.png)  
 
 ## Table of Contents
 1. [System Flow Overview](#system-flow-overview)
