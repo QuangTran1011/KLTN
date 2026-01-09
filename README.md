@@ -9,10 +9,10 @@ The system consists of three main workflows: the data pipeline, the training pip
 ![mô tả ảnh](images/tt7.png)  
 
 ### Training Pipeline:
-![mô tả ảnh](images/Kubeflow.png)  
+![mô tả ảnh](images/trainingpipe.png)  
 
 ### API:
-![mô tả ảnh](images/Kubeflow.png)  
+![mô tả ảnh](images/apipipeline.png)  
 
 ## Table of Contents
 1. [System Flow Overview](#system-flow-overview)
@@ -33,30 +33,42 @@ The system consists of three main workflows: the data pipeline, the training pip
    - [5. Observability](#5-observability)
 ## Project Structure
 ```bash
-├── airflow-dags                              // Airflow Data pipeline
-│   ├── airflow                               // airflow chart
-│   ├── dags                                  // dags to run pipeline
-├── api                                       // FastAPI with nginx ingress
-├── ContinuousDeployment                      // Copy to VM and Deploy Jenkins to trigger new model
-├── feature_pipeline                          // compute feature with DBT and run Feature Store local.
-│   ├── dbt                                   // dbt with BigQuery to compute feature
-│   ├── feature_store                         // feature store with BigQuery and Redis(GCP CLoudMemory)
-│   └── src                                   // source code upload data to BigQuery
-├── iac_gke                                   // terraform file to create k8s cluster
-├── images                                    // images
-├── mlflow                                    // mlflow folder copy to VM and create Mlflow with GCS and CloudSQL
-├── model_server                              // BentoML Model Server with Kserver and rollout traffic model 
-├── observability                             // LGTM stack with Alloy
-├── qdrant                                    // vector store
-├── scripts                              
-│   └── check_oltp_max_timestamp.py           // check max time stamp to materialize feast
-├── src                                       // source code developed and tested locally during project development
-├── training_pipeline                         // training pipeline with kubeflow
-│   ├── finetuning.ipynb                      // finetune small language model to tagging item
-│   ├── pipeline                              // kubeflow pipeline with pytorchjob
-│   ├── pipelines                             // src to install kubeflow
-│   ├── src                                   // source code to build pipeline component.
-├── ui                                        // gradio ui
+├── airflow_pipeline                              // airflow to run data pipeline
+├── api                                           // fast api 
+├── deployment                                    // deploy
+│   ├── k8s                                       // deploy in k8s
+│   │   ├── addons                                // rbac, biding, pvc,... for k8s
+│   │   ├── api   
+│   │   ├── config-map.yaml                       // config-map of cluster
+│   │   ├── feast_online_server
+│   │   ├── model_server
+│   │   └── session_events_capture
+│   └── local                                     // compose to deploy in local
+├── feature_pipeline
+│   ├── dbt                                       // dbt to compute feature
+│   ├── feature_store                             
+├── helm_charts_and_material
+│   ├── airflow
+│   ├── ingress-nginx
+│   ├── istio-1.28.1
+│   ├── kubeflow-pipelines
+│   ├── observability
+│   │   ├── alloy
+│   │   ├── grafana
+│   │   ├── loki
+│   │   ├── mimir-distributed
+│   │   └── tempo
+│   └── qdrant
+├── iac
+│   └── gke
+├── images
+├── Jenkinsfile
+├── ml_tracking_registry                          // experiment tracking and model registry with mlflow
+├── model_server                                  // bentoml model server
+├── process_interaction_events                    // capture session events with kafka
+├── scripts                                       // addition script
+├── src                                           // source code related model
+├── ui                                            // gradio ui 
 ```
 
 ## Implementation
@@ -74,7 +86,6 @@ Set up Cloud(GCP):
 - Dowload Service Account Key (Json)
 
 ### 2. Data Pipeline
-![mô tả ảnh](images/data.png)  
 #### Prepare
 Create Secret from service account:
 ```bash
@@ -130,7 +141,6 @@ uv run feast materialize-incremental $MATERIALIZE_CHECKPOINT_TIME -v parent_asin
 Finally, re-run the Airflow pipeline.  
 ![mô tả ảnh](images/airflow.png)  
 ### 3. Training Pipeline
-![mô tả ảnh](images/training.png)  
 #### Prepare 
 Install Kubeflow:
 ```bash
@@ -225,11 +235,10 @@ pipeline-runner is the service account used to run component in pipeline.
 - Create a pipeline using the `training_pipeline.yaml` file.
 - Create a run from the pipeline to start the training workflow.
 
-![mô tả ảnh](images/kubeflow.png)  
+![mô tả ảnh](images/Kubeflow.png)  
 
 
 ### 4. Serving Pipeline
-![mô tả ảnh](images/api.png)   
 #### Deploy Components:
 ```bash
 helm install qdrant ./qdrant
