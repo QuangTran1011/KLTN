@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kafka-to-gcs-batch
+spec:
+  schedule: "0 0 */7 * *"   # 7 ngày - tùy bài toán cập nhật định kì
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: batch-consumer
+            image: quangtran1011/kafka-batch-consumer:latest
+            envFrom:
+            - configMapRef:
+                name: api-server
+            volumeMounts:
+              - name: gcp-key
+                mountPath: /secrets/gcp
+                readOnly: true
+          volumes:
+            - name: gcp-key
+              secret:
+                secretName: gcp-sa-secret
+          restartPolicy: OnFailure
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kafka-to-bigquery-batch
+spec:
+  schedule: "0 0 */1 * *"  # cap nhat vao offline store sau moi 1 ngay
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: batch-consumer
+            image: quangtran1011/kafka-batch-consumer:latest
+            command: ["python", "offlinestore_batch_consumer.py"]
+            envFrom:
+            - configMapRef:
+                name: api-server
+            volumeMounts:
+              - name: gcp-key
+                mountPath: /secrets/gcp
+                readOnly: true
+          volumes:
+            - name: gcp-key
+              secret:
+                secretName: gcp-sa-secret
+          restartPolicy: OnFailure

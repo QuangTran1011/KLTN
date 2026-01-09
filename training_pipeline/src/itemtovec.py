@@ -95,8 +95,8 @@ def load_parquet_from_gcs(path_pattern):
     tables = [pq.read_table(fs.open(f, "rb")) for f in files]
     return pd.concat([t.to_pandas() for t in tables], ignore_index=True)
 
-TRAIN_PATH = "gs://kltn--data/train_df20/*.parquet"
-TEST_PATH = "gs://kltn--data/val_df20/*.parquet"
+TRAIN_PATH = os.getenv("TRAIN_PATH")
+TEST_PATH = os.getenv("TEST_PATH")
 
 train_df = load_parquet_from_gcs(TRAIN_PATH).drop(columns=[ 'asin', 'helpful_vote', 'images',
        'text', 'title', 'verified_purchase', 'ts']).drop_duplicates(subset=[args.user_col, args.item_col, args.timestamp_col])

@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-config
+data:
+  PROJECT_ID: ""
+  QDRANT_URL: "qdrant.serving.svc.cluster.local:6333"
+  REDIS_HOST: ""
+  REDIS_PORT: "6379"
+  REGISTRY_PATH: "gs://..."
+  BQ_DATASET: "kltn"
+  ITEM_TABLE: "parent_asin_rating_stats_test"
+  USER_TABLE: "user_rating_stats_test"
+  RAW_TABLE_ID: "rawdatareview"
+  TRAIN_PATH: "gs://kltn--data/train_df20/*.parquet"
+  TEST_PATH: "gs://kltn--data/val_df20/*.parquet"
+  BUCKET: "kltn--data"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-server
+data:
+  PROJECT_ID: ""
+  REDIS_HOST: ""
+  REDIS_PORT: "6379"
+  MODEL_SERVER_URL: "http://ranker-model-server:3000"
+  FEAST_ONLINE_SERVER_HOST: "feast-online-server"
+  FEAST_ONLINE_SERVER_PORT: "6566"
+  GOOGLE_APPLICATION_CREDENTIALS: "/secrets/gcp-key.json"
+  BQ_DATASET: "kltn"
+  ITEM_TABLE: "parent_asin_rating_stats_test"
+  USER_TABLE: "user_rating_stats_test"
+  RAW_TABLE_ID: "rawdatareview"
+  QDRANT_HOST: "http://qdrant"
+  QDRANT_PORT: "6333"
+  KAFKA_BOOTSTRAP: "recsys-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
+  KAFKA_TOPIC: "user-interactions"
+  BUCKET: "kltn--data"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubeflow-config
+data:
+  MLFLOW_TRACKING_URI: "http://..."
+  GCS_PIPELINE_PATH: "gs://kltn--data/config/training_pipeline.yaml"
+  PIPELINE_NAME: "training-pipeline"
+  EXPERIMENT_NAME: "training-experiment"
+  KFP_HOST: "http://ml-pipeline.kubeflow.svc.cluster.local:8080"
+  bucket_name: "kltn--data"
+  yaml_skipgram_gcs_path: "config/skipgramptjob.yaml"
+  yaml_ranker_gcs_path: "config/rankingptjob.yaml"
+  JENKINS_DEPLOY_URL: "http://jenkins.example.com/job/recsys-deploy/buildWithParameters"
+  TRAIN_PATH: "gs://kltn--data/train_df20/*.parquet"
+  TEST_PATH: "gs://kltn--data/val_df20/*.parquet"
+  BUCKET: "kltn--data"

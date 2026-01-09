@@ -1,0 +1,40 @@
+apiVersion: kafka.strimzi.io/v1
+kind: Kafka
+metadata:
+  name: recsys-kafka
+  namespace: kafka
+spec:
+  kafka:
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+    config:
+      default.replication.factor: 2
+      min.insync.replicas: 1
+      offsets.topic.replication.factor: 2
+      transaction.state.log.replication.factor: 2
+      transaction.state.log.min.isr: 1
+      log.retention.hours: 168   # 7 ngày
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
+
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: recsys-pool
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: recsys-kafka
+spec:
+  replicas: 2
+  roles:
+    - controller
+    - broker
+  storage:
+    type: persistent-claim
+    size: 20Gi
+    deleteClaim: false

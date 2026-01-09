@@ -8,11 +8,11 @@ from loguru import logger
 
 FEAST_ONLINE_SERVER_HOST = "feast.kltn.com"
 FEAST_ONLINE_SERVER_PORT = 80
+API_BASE_URL = "http://kltn.recsys.com"
 
 
 def get_user_item_sequence(user_id: str):
     # Define the URL
-    API_BASE_URL = "http://kltn.recsys.com"
     url = f"{API_BASE_URL}/recs/get_user_feature"
 
     headers = {
@@ -139,6 +139,17 @@ def push_new_item_sequence(
             f"http://{FEAST_ONLINE_SERVER_HOST}:{FEAST_ONLINE_SERVER_PORT}/push",
             data=json.dumps(push_data),
         )
+
+        # Push to Kafka
+        for item_id in new_items:
+            requests.post(
+                f"{API_BASE_URL}/send_interaction_kafka",
+                json={
+                    "user_id": user_id,
+                    "item_id": item_id,
+                    "rating": 1.0,   #Mock
+                },
+            )
 
         if r.status_code == 200:
             logger.info(f"Successfully pushed new item sequence for user {user_id}")

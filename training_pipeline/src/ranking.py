@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader
 import pyarrow.parquet as pq
 import gcsfs
 from scipy.sparse import vstack
+import requests
 
 import mlflow
 
@@ -157,8 +158,9 @@ embedding_0 = skipgram_model.embeddings(torch.tensor(0))
 embedding_dim = embedding_0.size()[0]
 pretrained_item_embedding = skipgram_model.embeddings
 
-train_df = pd.read_parquet("gs://kltn--data/feature_data/train_features_neg_df2.parquet")
-val_df = pd.read_parquet("gs://kltn--data/feature_data/val_features_neg_df2.parquet")
+bucket_name = os.getenv("BUCKET")
+train_df = pd.read_parquet("gs://{bucket_name}/feature_data/train_features_neg_df2.parquet")
+val_df = pd.read_parquet("gs://{bucket_name}/feature_data/val_features_neg_df2.parquet")
 train_df['timestamp_unix'] = train_df[args.timestamp_col].astype("int64") // 10**9
 val_df['timestamp_unix'] = val_df[args.timestamp_col].astype("int64") // 10**9
 
@@ -219,7 +221,7 @@ val_df = val_df.assign(
     item_sequence_ts_bucket=lambda df: df.apply(calc_sequence_timestamp_bucket, axis=1),
 )
 
-tagging_df = pd.read_parquet('gs://kltn--data/tag_embedding_data/tag_embeddings.parquet')
+tagging_df = pd.read_parquet('gs://kltn--data/tag_embedding_data/tag_embeddings.parquet')     # nếu không có feature tags, có thể bỏ, nếu có có thể chuyển vào env configmap 
 target_dim = 384  
 
 def fix_embedding(emb, target_dim=target_dim):
@@ -247,7 +249,7 @@ def load_parquet_from_gcs(path_pattern):
     tables = [pq.read_table(fs.open(f, "rb")) for f in files]
     return pd.concat([t.to_pandas() for t in tables], ignore_index=True)
 
-meta_path = "gs://kltn--data/sampled_metadata/*.parquet"
+meta_path = "gs://{bucket_name}/sampled_metadata/*.parquet"
 metadata_raw_df = load_parquet_from_gcs(meta_path)
 
 item_features = [
@@ -503,6 +505,30 @@ if args.log_to_mlflow:
             registered_model_name=args.mlf_model_name,
         )
 
+def trigger_jenkins_deploy():
+    jenkins_url = os.environ.get(
+        "JENKINS_DEPLOY_URL",
+        "http://jenkins.example.com/job/recsys-deploy/buildWithParameters"
+    )
+
+    jenkins_user = os.environ.get("JENKINS_USER")
+    jenkins_token = os.environ.get("JENKINS_API_TOKEN")
+
+    if not all([jenkins_user, jenkins_token]):
+        raise RuntimeError("Missing Jenkins credentials")
+
+    resp = requests.post(
+        jenkins_url,
+        auth=(jenkins_user, jenkins_token),
+        params={"RUN_DEPLOY": "true"},
+        timeout=10,
+    )
+
+    if resp.status_code not in (200, 201):
+        logger.error("Trigger Jenkins failed", exc_info=True)
+
+    print(" Jenkins deploy triggered")
+
 if args.log_to_mlflow:
     new_mlf_run = trainer.logger.experiment.get_run(trainer.logger.run_id)
     new_metrics = new_mlf_run.data.metrics
@@ -536,6 +562,8 @@ if args.log_to_mlflow:
         logger.info(
             f"Assigned alias 'newly' to version {model_version} (roc_auc={roc_auc:.4f})."
         )
+
+        trigger_jenkins_deploy()
     else:
         logger.info(
             f"roc_auc={roc_auc:.4f} < {threshold}, skip assigning alias 'newly'."

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feast-online-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: feast-online-server
+  template:
+    metadata:
+      labels:
+        app: feast-online-server
+    spec:
+      containers:
+        - name: feast-online-server
+          image: quangtran1011/feast-online-server:latest
+          ports:
+            - containerPort: 6566
+          volumeMounts:
+            - name: gcp-sa
+              mountPath: /secrets
+              readOnly: true
+          envFrom:
+            - configMapRef:
+                name: api-server
+      volumes:
+        - name: gcp-sa
+          secret:
+            secretName: gcp-sa-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: feast-online-server
+spec:
+  type: ClusterIP
+  selector:
+    app: feast-online-server
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 6566
+      targetPort: 6566

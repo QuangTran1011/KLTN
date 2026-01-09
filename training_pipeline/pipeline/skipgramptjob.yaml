@@ -21,13 +21,14 @@ spec:
                 - python
                 - -m
                 - src.itemtovec
+              envFrom:
+                - configMapRef:
+                    name: kubeflow-config
               env:
                 - name: PYTHONUNBUFFERED
                   value: "1"
                 - name: OMP_NUM_THREADS
                   value: "2"
-                - name: MLFLOW_TRACKING_URI
-                  value: "http://34.172.241.248:8080"
                 - name: MASTER_ADDR
                   value: "skipgram-train-master-0"
                 - name: MASTER_PORT
@@ -73,13 +74,14 @@ spec:
                 - python
                 - -m
                 - src.itemtovec
+              envFrom:
+                - configMapRef:
+                    name: kubeflow-config
               env:
                 - name: PYTHONUNBUFFERED
                   value: "1"
                 - name: OMP_NUM_THREADS
                   value: "2"
-                - name: MLFLOW_TRACKING_URI
-                  value: "http://34.172.241.248:8080"
                 - name: MASTER_ADDR
                   value: "skipgram-train-master-0"
                 - name: MASTER_PORT

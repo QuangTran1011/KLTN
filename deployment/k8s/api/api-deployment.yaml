@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kltn-api
+  labels:
+    app: kltn-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kltn-api
+  template:
+    metadata:
+      labels:
+        app: kltn-api
+    spec:
+      containers:
+        - name: api
+          image: quangtran1011/kltn_api:v5
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: api-server
+      restartPolicy: Always
+      
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kltn-api
+spec:
+  selector:
+    app: kltn-api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP

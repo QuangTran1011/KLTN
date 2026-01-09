@@ -1,0 +1,31 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: ranker-model-server
+  namespace: serving
+  annotations:
+    autoscaling.knative.dev/minScale: "0"
+    autoscaling.knative.dev/maxScale: "3"
+spec:
+  predictor:
+    containers:
+      - name: predictor
+        image: quangtran1011/ranker_model_server:kserve7
+        command: ["bentoml", "serve", "service:RankerService", "--port", "3000"]
+        ports:
+          - containerPort: 3000
+        envFrom:
+          - configMapRef:
+              name: api-server
+
+        readinessProbe:
+          exec:
+            command:
+            - curl
+            - -X
+            - POST
+            - -f
+            - http://localhost:3000/ready_check
+          initialDelaySeconds: 150
+          periodSeconds: 30
+          failureThreshold: 20

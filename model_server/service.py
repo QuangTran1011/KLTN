@@ -1,17 +1,19 @@
 import os
-import sys
 
 import bentoml
 from loguru import logger
 from mlflow import MlflowClient
 
 
+MODEL_NAME = os.getenv("MODEL_NAME", "rankertest")
+DEPLOY_ALIAS = os.getenv("DEPLOY_ALIAS", "newly")
+
 model_cfg = {
-    "rankertest": {
-        "name": "rankertest",
-        "deploy_alias": "newly",
-        "model_uri": "models:/rankertest@newly",
-    },
+    MODEL_NAME: {
+        "name": MODEL_NAME,
+        "deploy_alias": DEPLOY_ALIAS,
+        "model_uri": f"models:/{MODEL_NAME}@{DEPLOY_ALIAS}",
+    }
 }
 
 for name, cfg in model_cfg.items():

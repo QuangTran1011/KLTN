@@ -6,6 +6,9 @@ import os
 import redis 
 import asyncio
 import httpx
+from kafka import KafkaProducer
+import time
+from pydantic import BaseModel
 
 
 app = FastAPI()
@@ -20,11 +23,22 @@ serving_url = f"{MODEL_SERVER_URL}/predict"
 redis_client = redis.Redis(
     host=REDIS_HOST, port=REDIS_PORT, db=0, decode_responses=True
 )
+producer = KafkaProducer(
+    bootstrap_servers=os.getenv("KAFKA_BOOTSTRAP"),    #"recsys-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092",
+    value_serializer=lambda v: json.dumps(v).encode()
+)
+TOPIC = "user-interactions"
 redis_output_i2i_key_prefix = "output:i2i:"
 redis_feature_recent_items_key_prefix = "feature:user:recent_items:"
 redis_output_popular_key = "output:popular"
 redis_recent_key_prefix = "feature:user:recent_items:"
 REDIS_KEY_PREFIX = "item:"
+
+class Interaction(BaseModel):
+    user_id: str
+    item_id: str
+    rating: float
+    timestamp: int | None = None
 
 
 def get_recommendations_from_redis(
@@ -368,3 +382,11 @@ async def build_payload(user_id: str, item_ids: list):
     }
 
     return payload
+
+
+@app.post("/send_interaction_kafka")
+def push(e: Interaction):
+    payload = e.dict()
+    payload["timestamp"] = payload["timestamp"] or int(time.time())
+    producer.send(TOPIC, payload)
+    return {"status": "ok"}
