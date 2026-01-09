@@ -106,9 +106,10 @@ Create a BigQuery dataset named `kltn` and three table named `traindatareviewtes
 
 #### Airflow Pipeline
 Install Airflow:
-- `cd airflow-dags` 
+- `cd ROOT_PATH/helm_charts_and_material` 
 - Update the repo value in dags.gitSync to point to your repository in the Airflow values file.
 - `helm install airlow ./airflow`
+- `cd ROOT_PATH/deployment/k8s/addons` 
 - `kubectl apply -f createpod_role.yaml`
 - `kubectl apply -f addrole_svacc.yaml`
 
@@ -132,7 +133,7 @@ Apply feast:
 - ssh into redis: `gcloud compute ssh vm-name -- -L 6379:<PRIVATE_IP_OF_REDIS>:6379`.  
 ```bash
 cd $ROOT_DIR && MATERIALIZE_CHECKPOINT_TIME=$(uv run scripts/check_oltp_max_timestamp.py 2>&1 | awk -F'<ts>|</ts>' '{print $2}')
-cd feature pipeline/feature_store/feature_repo
+cd ROOT_PATH/feature pipeline/feature_store/feature_repo
 change RedisIP to `localhost`
 uv run feast apply
 uv run feast materialize-incremental $MATERIALIZE_CHECKPOINT_TIME -v parent_asin_rating_stats -v parent_asin_rating_stats_fresh -v user_rating_stats -v user_rating_stats_fresh
@@ -144,7 +145,7 @@ Finally, re-run the Airflow pipeline.
 #### Prepare 
 Install Kubeflow:
 ```bash
-cd training_pipeline/pipelines
+cd ROOT_PATH/helm_charts_and_material/kubeflow-pipelines
 
 kubectl apply -k manifests/kustomize/cluster-scoped-resources
 kubectl apply -k manifests/kustomize/env/platform-agnostic
@@ -168,7 +169,7 @@ kubectl rollout status deployment/seaweedfs -n kubeflow
 
 Create a GCP Filestore instance for distributed training, providing a shared filesystem that can be accessed concurrently by multiple pods.  
 - Go to Filestore GCP and create `BASIC_HDD 1TB`.
-- Update nfs path to the Filestore Address and `kubectl apply -f training_pvc.yaml`
+- Update nfs path to the Filestore Address and ``cd ROOT_PATH/deployment/k8s/addons`, kubectl apply -f training_pvc.yaml`
 
 #### Workload Identity
 ```bash
@@ -193,7 +194,7 @@ pipeline-runner is the service account used to run component in pipeline.
 
 - Create a GCS bucket to be used as the artifact store.
 
-- SSH into the VM and copy the `mlflow` directory to the VM.
+- SSH into the VM and copy the `ml_tracking_registry` directory to the VM.
 
 - Build the `mlflow-server` Docker image from the MLflow Dockerfile.
 
@@ -217,7 +218,7 @@ pipeline-runner is the service account used to run component in pipeline.
 - Update the configuration values in `src/feature_repo` to match your project setup.
 - Build the training Docker image from the provided Dockerfile and push it to Docker Hub.
 - Navigate to the pipeline directory:
-  `cd pipeline`
+  `cd ROOT_PATH/training_pipeline/pipeline`
 
 - Update the following fields in `_ptjob.yaml`:
   - serviceAccount
@@ -242,40 +243,33 @@ pipeline-runner is the service account used to run component in pipeline.
 #### Deploy Components:
 ```bash
 helm install qdrant ./qdrant
-cd feature_pipeline/feature_store
+cd ROOT_PATH/feature_pipeline/feature_store
 Build image from docker file and upload to DockerHub
+cd ROOT_PATH/deployment/k8s/feast_online_server
 kubectl apply -f feature-online-server.yaml
 
-cd model_server
+cd ROOT_PATH/model_server
 Build image from docker file and upload to DockerHub
-cd istio-*
+cd ROOT_PATH/helm_charts_and_material/istio-*
 export PATH=$PWD/bin:$PATH
 istioctl install --set profile=default -y
 kubectl label namespace serving istio-injection=enabled
+cd ROOT_PATH/deployment/k8s/model_server
 kubectl apply -f ranker-inferenceservice.yaml
 
-cd api
+cd ROOT_PATH/api
 Build image from docker file and upload to DockerHub
-kubectl create namespace ingress-nginx   
+kubectl create namespace ingress-nginx
+cd ROOT_PATH/helm_charts_and_material 
 helm install nginx-ingress ./ingress-nginx \
   --namespace ingress-nginx \
   --set controller.publishService.enabled=true
+cd ROOT_PATH/deployment/k8s/api
 kubectl apply -f api-deployment.yaml
 kubectl apply -f api-ingress.yaml
 
-cd feature_pipeline/feature_store
+cd ROOT_PATH/deployment/k8s/feast_online_server
 kubectl apply -f feast_ingress.yaml
-```
-
-Precompute:
-cd src/precompute.
-Port-forward Qdrant, SSH tunel Redis and change path in python files.
-```bash
-uv run load_to_vector_store.py
-uv run embedding_tag.py
-uv run batch_precompute.py
-uv run store_user_inter_seq.py
-uv run upload_item_metadata.py
 ```
 
 UI:
@@ -289,11 +283,23 @@ run file `gradio_ui.py`
 ![mô tả ảnh](images/apiui.png)  
 ![mô tả ảnh](images/ui.png)  
 
+#### Capture events by Kafka
+```bash
+kubectl create namespace kafka
+kubectl apply -n kafka -f https://strimzi.io/install/latest?namespace=kafka
+
+cd ROOT_PATH/process_interaction_events
+build and push docker image
+cd ROOT_PATH/deployment/k8s/session_events_capture
+kubectl apply -f kafka-cluster.yaml
+kubectl apply -f topic-user-interactions.yaml
+kubectl apply -f batch_consumer_cronjob.yaml
+```
 
 #### Continuous Deployment with Jenkins
 Jenkins triggers MLflow to perform a rolling deployment of the latest model.
 
-SSH in to VM and copy folder ContinuousDeployment to VM.
+SSH in to VM
 
 Install Jenkins:
 ```bash
@@ -306,19 +312,15 @@ docker run -d \
   jenkins/jenkins:lts
 ```
 
-Install `kubectl` in VM  
-Install `gke-gcloud-auth-plugin`  
-Copy file .kube/config to VM
-
-Now, VM can access K8s Cluster.
-
-Setup Jenkins:
-- Open firewall and access Jenkins Web.
-- Create a Node connect to VM to run flow: `Manage Jenkins -> Nodes -> New Node -> Name: host-agent -> Launch method via SSH -> Host: VM IP -> Add credentials: User name with Private Key -> Add private key(should RSA Format) -> None Verification Strategy -> Save`
-- Create Pipeline, Copy Jenkins file.
-
-![mô tả ảnh](images/jenkinconf.png)  
-
+Config Jenkins:
+- Install required plugins: **Docker Pipeline**, **Kubernetes CLI**, **Stage View**.
+- Configure **GitHub Webhooks** to point to the VM running Jenkins.
+- Create a **Jenkins Pipeline**.
+- Add **GitHub Branch Source** and configure credentials using a **GitHub access token**.
+- Add **DockerHub credentials** using a **DockerHub access token**.
+- Create a **Kubernetes Cloud** in Jenkins:
+  - Connect using the **Cluster URL**.
+  - Configure credentials with a **kubeconfig file**.
 
 Jenkins triggers traffic rollout to the new model version.  
 
@@ -346,7 +348,7 @@ kubectl annotate serviceaccount lgtm-ksa \
     iam.gke.io/gcp-service-account=yourserviceaccount@YOUR_PROJECT_ID.iam.gserviceaccount.com
 
 
-cd observability
+cd helm_charts_and_material/observability
 helm install loki ./loki
 helm install mimir ./mimir-distributed
 helm install tempo ./tempo
